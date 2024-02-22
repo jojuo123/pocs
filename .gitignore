@@ -1,0 +1,7 @@
+*.init
+*.so
+**/__pycache__/
+build/*
+*.pyx
+*.zip
+forced_alignment_data/*
