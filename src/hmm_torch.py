@@ -1,6 +1,44 @@
 import torch
 import numpy as np
 import pdb
+# from memory_profiler import profile
+import time
+import os
+import psutil
+import tracemalloc
+
+def process_memory():
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    return mem_info.rss
+ 
+# decorator function
+# def profile(func):
+#     def wrapper(*args, **kwargs):
+ 
+#         mem_before = process_memory()
+#         result = func(*args, **kwargs)
+#         mem_after = process_memory()
+#         print("{}:consumed memory: {:,}".format(
+#             func.__name__,
+#             mem_before, mem_after, mem_after - mem_before))
+ 
+#         return result
+#     return wrapper
+
+def timing(func):
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter_ns()
+        # mem_before = process_memory()
+        # tracemalloc.start()
+        result = func(*args, **kwargs)
+        # mem_after = tracemalloc.get_traced_memory()
+        # mem_after = process_memory()
+        # tracemalloc.stop()
+        end = time.perf_counter_ns()
+        # print('time consume: ', end-start)
+        return result, end-start, 0
+    return wrapper
 
 class HiddenMarkovModel(object):
     """
@@ -111,7 +149,7 @@ class HiddenMarkovModel(object):
             # Update backward matrix
             self.backward[step + 1] = self.scale[self.N - 2 - step] * backward_prob
         self.backward = torch.flip(self.backward, [0, 1])
-        
+    @timing
     def forward_backward(self, obs_prob_seq):
         """
         runs forward backward algorithm on observation sequence
@@ -130,6 +168,7 @@ class HiddenMarkovModel(object):
         - posterior : matrix of size N by S representing
             the posterior probability of each state at each time step
         """        
+        self.initialize_forw_back_variables([obs_prob_seq.shape[0], self.S])
         self._forward(obs_prob_seq)
         obs_prob_seq_rev = torch.flip(obs_prob_seq, [0, 1])
         self._backward(obs_prob_seq_rev)
