@@ -1,5 +1,0 @@
-*.init
-*.so
-**/__pycache__/
-build/*
-*.pyx
