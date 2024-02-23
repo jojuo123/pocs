@@ -5,3 +5,4 @@ build/*
 *.pyx
 *.zip
 forced_alignment_data/*
+*.pt

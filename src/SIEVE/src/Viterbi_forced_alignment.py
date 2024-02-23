@@ -21,104 +21,104 @@ class SIEVE_forced_alignment:
        
         
         
-        def evaluate_GMM(self, state, obs): 
+    def evaluate_GMM(self, state, obs): 
+    
+        ''' evaluate emission probabilities with multivariate GMM 
+        params: 
+            state: hidden state of interest 
+            obs: observation of interest 
+            
+        return 
+            density (log) 
         
-            ''' evaluate emission probabilities with multivariate GMM 
-            params: 
-                state: hidden state of interest 
-                obs: observation of interest 
-                
-            return 
-                density (log) 
+        ''' 
+        
+        st = state[1:-1]
+        means = self.means_dict[st] 
+        variances = self.vars_dict[st] 
+        weights = [float(x[:-2]) for x in self.weights_dict[st]] 
+        density = 0 
+        for i in range(len(weights)): 
+            var = multivariate_normal(means[i], cov=np.diag(variances[i]))
+            density += (np.log(weights[i]) + np.log(var.pdf(obs)))
             
-            ''' 
-            
-            st = state[1:-1]
-            means = self.means_dict[st] 
-            variances = self.vars_dict[st] 
-            weights = [float(x[:-2]) for x in self.weights_dict[st]] 
-            density = 0 
-            for i in range(len(weights)): 
-                var = multivariate_normal(means[i], cov=np.diag(variances[i]))
-                density += (np.log(weights[i]) + np.log(var.pdf(obs)))
-                
-            return density
+        return density
         
         
         
-        def viterbi_preprocessing_descendants_forced_alignment(self, allstates, b): 
+    def viterbi_preprocessing_descendants_forced_alignment(self, allstates, b): 
+    
+        ''' 
+        Compute b hop descendants for the forced aligment data 
         
-            ''' 
-            Compute b hop descendants for the forced aligment data 
+        params: 
+            allstates: list of states 
+            b : number of hops 
             
-            params: 
-                allstates: list of states 
-                b : number of hops 
+        return: 
+            None 
+        
+        ''' 
+        
+        
+        self.b_hop_descendants = defaultdict(int)  
+        
+        
+        for source in allstates: 
+            
+            # we need to do BFS from this node to get all the b hop descendants 
+            
+            #   print(source)
+            
+            visited = set() 
+            visited_emitting = dict() 
+            
+        
+            to_be_mantained = set() 
+            # Create a queue for BFS
+            queue = []
+        
+            # Mark the source node as 
+            
+            # visited and enqueue it
+            queue.append(source)
+            # queue.append("null") # for level 
+            if "s_e" in visited_emitting: 
+                visited_emitting[source] = 1
+            else: 
+                visited_emitting[source] = 0 
+            #visited.add(source)
+            
+            level = 0 
+            #A_t = self.A_in 
+            while queue: # and level < b:
+        
+                # Dequeue a vertex from 
+                # queue and print it
+                s = queue.pop(0)
                 
-            return: 
-                None 
-            
-            ''' 
-         
-            
-            self.b_hop_descendants = defaultdict(int)  
-            
-            
-            for source in allstates: 
                 
-                # we need to do BFS from this node to get all the b hop descendants 
-               
-             #   print(source)
+                if visited_emitting[s] < b: 
                 
-                visited = set() 
-                visited_emitting = dict() 
-                
-            
-                to_be_mantained = set() 
-                # Create a queue for BFS
-                queue = []
-         
-                # Mark the source node as 
-               
-                # visited and enqueue it
-                queue.append(source)
-               # queue.append("null") # for level 
-                if "s_e" in visited_emitting: 
-                    visited_emitting[source] = 1
-                else: 
-                    visited_emitting[source] = 0 
-                #visited.add(source)
-                
-                level = 0 
-                #A_t = self.A_in 
-                while queue: # and level < b:
-         
-                    # Dequeue a vertex from 
-                    # queue and print it
-                    s = queue.pop(0)
-                   
-                    
-                    if visited_emitting[s] < b: 
-                    
-                        for tup  in self.A_out[s]:    
-                             
-                            node_id = tup[0]
+                    for tup  in self.A_out[s]:    
                             
-                            if node_id not in visited: 
-                    #             if root: 
-                                self.b_hop_descendants[source]+=1
-                     #            else: 
-                     #                to_be_mantained.add(node_id)
-                                 
-                                if "s_e" in node_id:
-                                    visited_emitting[node_id] = visited_emitting[s] + 1 
-                                else:
-                                    visited_emitting[node_id] = visited_emitting[s]
+                        node_id = tup[0]
+                        
+                        if node_id not in visited: 
+                #             if root: 
+                            self.b_hop_descendants[source]+=1
+                    #            else: 
+                    #                to_be_mantained.add(node_id)
                                 
-                                
-                                queue.append(node_id)
-                                visited.add(node_id)
-          
+                            if "s_e" in node_id:
+                                visited_emitting[node_id] = visited_emitting[s] + 1 
+                            else:
+                                visited_emitting[node_id] = visited_emitting[s]
+                            
+                            
+                            queue.append(node_id)
+                            visited.add(node_id)
+        
                     
           
                 
